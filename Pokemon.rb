@@ -44,7 +44,7 @@ class Pokemon
 	traits :basehp, :baseattack, :basedefense, :basespattack, :basespdefense, :basespeed, :type, :name 
 
 	def list_moves
-		@moves.length.times {|i| puts "#{i}: #{@moves[i].name}"}
+		@moves.length.times {|i| puts "#{i}: #{@moves[i].name}" if @moves[i]}
 	end
 
 	def self.add_move(move)
@@ -62,7 +62,8 @@ class Pokemon
 		movePower *= attack
 		movePower /= opponentPokemon.defense
 		movePower = rand(movePower)
-		if rand(101) > ((move.accuracy * accuracy)/100.0)
+		puts move.accuracy == '--'
+		if move.accuracy != '--' and rand(101) > ((move.accuracy * accuracy)/100.0)
 			puts "You missed."
 		else
 			if rand(5) == 0
