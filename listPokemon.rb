@@ -38,7 +38,7 @@ pokemonList.each do |pokemon|
 	searchMove = "(move)\"><span style=\"color:#000;\">"
 	searchPower = "#D8D8D8;\"> "
 	badMove = "&#8212;"
-		writeFile.puts("class #{pokemon[1].gsub(/\W/,'')} < Pokemon")
+		writeFile.puts("class #{pokemon[1].gsub(/\W/,'').downcase.capitalize} < Pokemon")
 	writeFile.puts("name \"#{pokemon[1].to_s}\"")
 	moves=[]
 	position1 = 0

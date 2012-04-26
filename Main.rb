@@ -11,8 +11,8 @@ p2name = gets.chomp
 puts "What level is it?"
 p2level = gets.chomp.to_i
 
-p1 = eval("#{p1name}.new(#{p1level})")
-p2 = eval("#{p2name}.new(#{p2level})")
+p1 = eval("#{p1name.gsub(/\W/,'').downcase.capitalize}.new(#{p1level})")
+p2 = eval("#{p2name.gsub(/\W/,'').downcase.capitalize}.new(#{p2level})")
 
 battle = Battle.new(p1, p2)
 dead = false
