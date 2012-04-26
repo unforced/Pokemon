@@ -10,6 +10,7 @@ class Pokemon
 		@@stats.each do |stat|
 			instance_variable_set("@#{stat}",eval("@base#{stat}+@level"))
 		end
+		@hp += @level
 		@accuracy = 100
 		@moves = self.class.moves
 	end
@@ -62,7 +63,6 @@ class Pokemon
 		movePower *= attack
 		movePower /= opponentPokemon.defense
 		movePower = rand(movePower)
-		puts move.accuracy == '--'
 		if move.accuracy != '--' and rand(101) > ((move.accuracy * accuracy)/100.0)
 			puts "You missed."
 		else
@@ -83,7 +83,7 @@ class Pokemon
 			puts "#{name} dealt #{movePower} damage to #{opponentPokemon.name}"
 			opponentPokemon.hp -= movePower
 			if opponentPokemon.hp <= 0
-				puts "#{opponentPokemon.name} has died"
+				puts "#{opponentPokemon.name} has fainted"
 				return true
 			end
 		end

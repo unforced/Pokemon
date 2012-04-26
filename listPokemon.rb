@@ -26,7 +26,7 @@ while s.index(searchName,position2)
 	end
 	pokemonList << pokemon
 end
-writeFile = open('copyPasta.rb','w')
+writeFile = open('copyPastaPokemon.rb','w')
 pokemonList.each do |pokemon|
 	begin
 		m = open(pokemon[0]).read
@@ -37,9 +37,9 @@ pokemonList.each do |pokemon|
 	end
 	searchMove = "(move)\"><span style=\"color:#000;\">"
 	searchPower = "#D8D8D8;\"> "
-	badMove = "&#8212;"
-		writeFile.puts("class #{pokemon[1].gsub(/\W/,'').downcase.capitalize} < Pokemon")
-	writeFile.puts("name \"#{pokemon[1].to_s}\"")
+	writeFile.puts("class #{pokemon[1].gsub(/\W/,'').downcase.capitalize} < Pokemon")
+	badMove = String.new('\&#8212;')
+	writeFile.puts("name \"#{pokemon[2].to_s}\"")
 	moves=[]
 	position1 = 0
 	position2 = 0
