@@ -39,12 +39,18 @@ pokemonList.each do |pokemon|
 	searchPower = "#D8D8D8;\"> "
 	writeFile.puts("class #{pokemon[1].gsub(/\W/,'').downcase.capitalize} < Pokemon")
 	badMove = String.new('\&#8212;')
-	writeFile.puts("name \"#{pokemon[2].to_s}\"")
+	writeFile.puts("name \"#{pokemon[1].to_s}\"")
 	moves=[]
 	position1 = 0
 	position2 = 0
-	while m.index(searchMove, position2)
-		position1 = m.index(searchMove, position2)+searchMove.length
+	poplast = true
+	while m.index("title=\"TM\">TM", position2)
+		position1 = m.index(searchMove, position2)
+		if position1 == nil
+			poplast = false
+			break
+		end
+		position1 += searchMove.length
 		position2 = m.index("</span>",position1)
 		moveName = ":#{m[position1...position2].downcase.gsub(/[^a-z]/,'')}"
 		position1 = m.index(searchPower, position2)+searchPower.length
@@ -52,6 +58,7 @@ pokemonList.each do |pokemon|
 		movePower = m[position1...position2]
 		moves << moveName if movePower != badMove and !moves.include?moveName
 	end
+	moves.delete_at(-1) if poplast
 	begin
 		site = open("http://pokemon.wikia.com/wiki/#{pokemon[1]}").read
 		search = "<b>Type(s):</b>"

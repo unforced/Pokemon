@@ -31,8 +31,8 @@ class Move
 	end
 
 	def Move.show_moves
-		$moves.each do |k,v|
-			puts v.name
+		$moves.collect do |k,v|
+			v.name
 		end
 	end
 end

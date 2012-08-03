@@ -1,21 +1,47 @@
 class Battle
-	attr_accessor :turn, :notTurn, :pokemon1, :pokemon2
+	attr_accessor :turn, :notTurn, :pokemon1, :pokemon2, :finished
 
-	def initialize(pokemon1, pokemon2)
+	def initialize(nick1, nick2, pokemon1=nil, pokemon2=nil)
+		@nick1 = nick1
+		@nick2 = nick2
 		@pokemon1 = pokemon1
 		@pokemon2 = pokemon2
 		@turn = @pokemon1
 		@notTurn = @pokemon2
+		@finished = false
 	end
 
-	def get_moves
-		@turn.list_moves
+	def set_pokemon(nick, pokemon)
+		if nick==@nick1
+			@pokemon1 = pokemon
+			@turn = @pokemon1
+			return
+		elsif nick==@nick2
+			@pokemon2 = pokemon
+			@notTurn = @pokemon2
+		end
 	end
 
-	def fight(moveNumber)
-		dead = @turn.fight(moveNumber, @notTurn)
-		@turn, @notTurn = @notTurn, @turn
-		return dead
+	def get_pokemon(nick)
+		return @pokemon1 if nick==@nick1
+		return @pokemon2 if nick==@nick2
+	end
+
+	def get_moves(nick=nil)
+		return get_pokemon(nick).list_moves if nick
+		return @turn.list_moves
+	end
+
+	def fight(moveNumber, nick=nil)
+		return "#{nick} && #{get_pokemon(nick).inspect} && #{@turn.inspect}" if nick && get_pokemon(nick) != @turn
+		message = @turn.fight(moveNumber, @notTurn)
+		if @notTurn.hp <= 0
+			@finished = true
+			return message + "\nThe pokemon has fainted"
+		else
+			@turn, @notTurn = @notTurn, @turn
+			return message
+		end
 	end
 end
 

@@ -1,4 +1,4 @@
-require 'Move.rb'
+load 'Move.rb'
 class Pokemon
 	attr_accessor :name, :hp, :attack, :defense, :spattack, :spdefense, :speed, :accuracy
 	attr_reader :moves, :level
@@ -45,12 +45,12 @@ class Pokemon
 	traits :basehp, :baseattack, :basedefense, :basespattack, :basespdefense, :basespeed, :type, :name 
 
 	def list_moves
-		@moves.length.times {|i| puts "#{i}: #{@moves[i].name}" if @moves[i]}
+		@moves.length.times.collect {|i| "#{i}: #{@moves[i].name}" if @moves[i]}.compact.join("\n")
 	end
 
 	def self.add_move(move)
 		@moves ||= []
-		@moves << move
+		@moves << move if move and move.power!='--'
 	end
 
 	def remove_move(moveNumber)
@@ -59,35 +59,35 @@ class Pokemon
 
 	def fight(moveNumber, opponentPokemon)
 		move = moves[moveNumber]	
-		movePower = move.power
-		movePower *= attack
-		movePower /= opponentPokemon.defense
-		movePower = rand(movePower)
-		if move.accuracy != '--' and rand(101) > ((move.accuracy * accuracy)/100.0)
-			puts "You missed."
-		else
-			if rand(5) == 0
-				movePower *= 2
-				print "It was a critical hit! "
-			end
-			if $types[move.type][0].include?opponentPokemon.type
-				movePower *= 2
-				print "It was super effective! "
-			elsif $types[move.type][1].include?opponentPokemon.type
-				movePower *= 0.5
-				print "It was not very effective. "
-			elsif $types[move.type][2].include?opponentPokemon.type
-				movePower *= 0
-				print "It had no effect. "
-			end
-			puts "#{name} dealt #{movePower} damage to #{opponentPokemon.name}"
-			opponentPokemon.hp -= movePower
-			if opponentPokemon.hp <= 0
-				puts "#{opponentPokemon.name} has fainted"
-				return true
-			end
+		c = rand(5)==0 ? 2 : 1
+		a = attack
+		d = opponentPokemon.defense
+		r = rand(217..255)
+		m = 1.0
+		message = ''
+		if c==2
+			message += "It was a critical hit! "
 		end
-		false
+		if move.type == type
+			m *= 1.5
+		end
+		if $types[move.type][0].include?(opponentPokemon.type)
+			m *= 2
+			message += "It was super effective! "
+		elsif $types[move.type][1].include?(opponentPokemon.type)
+			m *= 0.5
+			message += "It was not very effective. "
+		elsif $types[move.type][2].include?(opponentPokemon.type)
+			m *= 0
+			message += "It had no effect. "
+		end
+		movePower = (((((level * 0.4 * c) + 2.0) * (a.to_f / d.to_f) * (move.power / 50.0)) + 2.0) * m * r / 255.0).floor
+		if move.accuracy != '--' and rand(1..100) > ((move.accuracy * accuracy)/100.0)
+			return "You missed."
+		else
+			opponentPokemon.hp -= movePower
+			return "#{message}#{name} dealt #{movePower} damage to #{opponentPokemon.name}"
+		end
 	end
 end
-load("copyPastaPokemon.rb")
+load "copyPastaPokemon.rb"
