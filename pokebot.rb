@@ -1,11 +1,9 @@
-require 'cinch'
-
 module Cinch
 	module Plugins
 		class Pokebot
-			load 'Move.rb'
-			load 'Pokemon.rb'
-			load 'Battle.rb'
+			require_relative 'Move.rb'
+			require_relative 'Pokemon.rb'
+			require_relative 'Battle.rb'
 			include Cinch::Plugin
 
 			def initialize(*args)
@@ -13,7 +11,7 @@ module Cinch
 				@battle = nil
 			end
 
-			match /^!poke/, :method => :execute
+			match /!poke/, :method => :execute
 
 				def execute(m)
 					text = m.params[1][6..-1]
@@ -79,4 +77,3 @@ module Cinch
 		end
 	end
 end
-

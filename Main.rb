@@ -1,6 +1,6 @@
-load 'Move.rb'
-load 'Pokemon.rb'
-load 'Battle.rb'
+require_relative 'Move.rb'
+require_relative 'Pokemon.rb'
+require_relative 'Battle.rb'
 
 puts "What is the first trainers name?"
 p1nick = gets.chomp

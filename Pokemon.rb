@@ -1,4 +1,3 @@
-load 'Move.rb'
 class Pokemon
 	attr_accessor :name, :hp, :attack, :defense, :spattack, :spdefense, :speed, :accuracy
 	attr_reader :moves, :level
@@ -90,4 +89,4 @@ class Pokemon
 		end
 	end
 end
-load "copyPastaPokemon.rb"
+require_relative "copyPastaPokemon.rb"

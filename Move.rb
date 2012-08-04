@@ -36,4 +36,4 @@ class Move
 		end
 	end
 end
-load("copyPastaMoves.rb")
+require_relative("copyPastaMoves.rb")
