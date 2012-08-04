@@ -1,1 +1,13 @@
-Pokemon game I'm making in Ruby.  Currently a work in progress.
+This is a pokemon game I'm working on in ruby.  Still a work in progress but at the moment it is is functioning relatively well.
+
+If you want to try it out, after cloning the repository, just run 'ruby Main.rb' for the command line version.
+For the IRC version, require the pokebot.rb plugin into any cinch bot, or just use the mybot.rb file included, just changing the server, channels, and nick, and then run it with 'ruby mybot.rb'.
+You will need to have the 'cinch' gem installed for the IRC bot to work, which requires ruby 1.9+.
+
+In the current iteration, only the original 151 pokemon are included, although if you want to include the rest, it should be as simple changing a couple line in the 'listPokemon.rb' crawler to keep going down the page and stop at a different point than what it does, and then run 'ruby listPokemon.rb', which will put the information into 'copyPastaPokemon.rb', which is loaded by Pokemon.rb and contains individual classes for each pokemon.
+
+Features to add:
+Add support for different types of moves.  Status type moves are currently commented out as they are not supported yet. Also, all damage dealing moves act the same, without any special effects(This means things like solar beam don't need a charge).
+I'll put more features here as I think of them.
+
+Sorry for the poor documentation, I'll try and add some more stuff later.
