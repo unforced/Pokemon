@@ -11,15 +11,24 @@ class Battle
 		@finished = false
 	end
 
-	def set_pokemon(nick, pokemon)
+	def set_pokemon(nick, pokemon_name, pokemon_level)
+		begin
+			pokemon = eval("#{pokemon_name.gsub(/\W/,'').downcase.capitalize}.new(#{pokemon_level.to_i})")
+		rescue NameError
+			return "That is not a valid pokemon"
+		end
 		if nick==@nick1
 			@pokemon1 = pokemon
 			@turn = @pokemon1
-			return
 		elsif nick==@nick2
 			@pokemon2 = pokemon
 			@notTurn = @pokemon2
+		else
+			return "You are not part of this battle"
 		end
+		message = "You have selected a level #{pokemon.level} #{pokemon.name}"
+		message += "Both players have selected pokemon. #{@nick1} goes first." if @pokemon1 && @pokemon2
+		return message
 	end
 
 	def get_pokemon(nick)

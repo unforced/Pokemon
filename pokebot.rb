@@ -11,14 +11,14 @@ module Cinch
 				@battle = nil
 			end
 
-			match /!poke/, :method => :execute
+			match /^!poke/, :method => :execute
 
-				def execute(m)
-					text = m.params[1][6..-1]
-					command = text.split[0]
-					args = text.split[1..-1]
-					handle(m, command, args, m.user.nick)
-				end
+			def execute(m)
+				text = m.params[1][6..-1]
+				command = text.split[0]
+				args = text.split[1..-1]
+				handle(m, command, args, m.user.nick)
+			end
 
 			def handle(message, command, args, nick)
 				case command
@@ -35,7 +35,7 @@ module Cinch
 				when 'commands'
 					message.reply commands
 				else
-					message.reply no_command(nick)
+					message.reply no_command
 				end
 			end
 
@@ -50,8 +50,7 @@ module Cinch
 			end
 
 			def choose_pokemon(nick, name, level)
-				@battle.set_pokemon(nick, eval("#{name.gsub(/\W/,'').downcase.capitalize}.new(#{level.to_i})"))
-				return "Pokemon selected"
+				return @battle.set_pokemon(nick, name, level)
 			end
 
 			def get_moves(nick)
@@ -59,6 +58,9 @@ module Cinch
 			end
 
 			def attack(nick, move)
+				if @battle.pokemon1.nil? || @battle.pokemon2.nil?
+					return "Both players must choose their pokemon first."
+				end
 				message = @battle.fight(move.to_i, nick)
 				if @battle.finished
 					@battle = nil
@@ -71,7 +73,7 @@ module Cinch
 					"!poke getmoves", "!poke attack [Move_number]", "!poke quitgame"].join("\n")
 			end
 
-			def no_command(nick)
+			def no_command
 				return "Sorry, that is not a valid command.  Use '!poke commands'"
 			end
 		end
