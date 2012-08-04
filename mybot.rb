@@ -1,5 +1,5 @@
 require 'cinch'
-include 'pokebot.rb'
+load 'pokebot.rb'
 
 bot = Cinch::Bot.new do
 	configure do |c|

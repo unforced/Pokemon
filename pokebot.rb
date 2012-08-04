@@ -8,15 +8,18 @@ module Cinch
 			load 'Battle.rb'
 			include Cinch::Plugin
 
-			@battle = nil
+			def initialize(*args)
+				super
+				@battle = nil
+			end
 
-			match /^!poke/
+			match /^!poke/, :method => :execute
 
 				def execute(m)
 					text = m.params[1][6..-1]
 					command = text.split[0]
 					args = text.split[1..-1]
-					pokemon_handle(m, command, args, m.user.nick)
+					handle(m, command, args, m.user.nick)
 				end
 
 			def handle(message, command, args, nick)
@@ -66,7 +69,8 @@ module Cinch
 			end
 
 			def commands
-				commands = ["!poke newgame [Opponent_nick]", "!poke choose [Pokemon_name] [Pokemon_level]", "!poke getmoves", "!poke attack [Move_number]", "!poke quitgame"]
+				return ["!poke newgame [Opponent_nick]", "!poke choose [Pokemon_name] [Pokemon_level]",
+					"!poke getmoves", "!poke attack [Move_number]", "!poke quitgame"].join("\n")
 			end
 
 			def no_command(nick)
