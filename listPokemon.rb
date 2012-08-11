@@ -1,82 +1,59 @@
+require 'json'
 require 'open-uri'
-s = open('http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats_(Generation_I)').read
-searchName = "(Pok\303\251mon)\">"
-searchLink = "a href=\""
-searchHP = "background:#FF5959\"> "
-searchAttack = "background:#F5AC78\"> "
-searchDefense = "background:#FAE078\"> "
-searchSpeed = "background:#FA92B2\"> "
-searchSpecial = "background:#94EFE0\"> "
-searches = [searchHP,searchAttack,searchDefense,searchSpeed,searchSpecial]
-position1=0
-position2=s.index("(Pok%C3%A9mon)")
+require 'nokogiri'
+doc = Nokogiri::HTML(open('http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats'))
+rows = doc.css('.sortable.roundy').first.children.css('tr')[1..-1]
 pokemonList = []
-while s.index(searchName,position2)
-	pokemon = []
-	position1 = s.index(searchLink,position2)+searchLink.length
-	position2 = s.index("\"",position1)
-	pokemon << "http://bulbapedia.bulbagarden.net" + s[position1...position2] + "/Generation_I_learnset"
-	position1 = s.index(searchName,position2)+searchName.length
-	position2 = s.index("<",position1)
-	pokemon << s[position1...position2]
-	searches.each do |search|
-		position1 = s.index(search,position2)+search.length
-		position2 = s.index("\n",position1)
-		pokemon << s[position1...position2]
-	end
-	pokemonList << pokemon
-end
-writeFile = open('copyPastaPokemon.rb','w')
-pokemonList.each do |pokemon|
-	begin
-		m = open(pokemon[0]).read
-	rescue Exception
-		20.times {puts "ERROR"}
-		puts "ERROR #{pokemon[0]}"
-		retry
-	end
-	searchMove = "(move)\"><span style=\"color:#000;\">"
-	searchPower = "#D8D8D8;\"> "
-	writeFile.puts("class #{pokemon[1].gsub(/\W/,'').downcase.capitalize} < Pokemon")
-	badMove = String.new('\&#8212;')
-	writeFile.puts("name \"#{pokemon[1].to_s}\"")
-	moves=[]
-	position1 = 0
-	position2 = 0
-	poplast = true
-	while m.index("title=\"TM\">TM", position2)
-		position1 = m.index(searchMove, position2)
-		if position1 == nil
-			poplast = false
+rows.each do |row|
+	tds = row.children.css('td')
+	pokemon = {}
+	pokemon[:number] = tds[0].content.strip
+	next if pokemonList.any?{|p| p[:number] == pokemon[:number]}
+	link = tds[1].children[1].children.first.attributes['href'].value
+	pokemon[:name] = tds[2].content.strip.sub(/ \(.*$/, '')
+	pokemon_doc = Nokogiri::HTML(open("http://bulbapedia.bulbagarden.net#{link}"))
+	type_table = pokemon_doc.css('#mw-content-text > table.roundy').first.xpath('./tr')[2].xpath('./td').first.css('table.roundy table.roundy').css('tr > td').first
+	pokemon[:types] = type_table.css('span span').collect{|t| t.content.gsub(/\W/, '')}
+	pokemon[:hp] = tds[3].content.strip
+	pokemon[:attack] = tds[4].content.strip
+	pokemon[:defense] = tds[5].content.strip
+	pokemon[:spattack] = tds[6].content.strip
+	pokemon[:spdefense] = tds[7].content.strip
+	pokemon[:speed] = tds[8].content.strip
+	potential_movetables = pokemon_doc.css('#mw-content-text > table.roundy')
+	movetable = nil
+	potential_movetables.each do |potential_movetable|
+		if potential_movetable.children.css('table.sortable').any?
+			movetable = potential_movetable
 			break
 		end
-		position1 += searchMove.length
-		position2 = m.index("</span>",position1)
-		moveName = ":#{m[position1...position2].downcase.gsub(/[^a-z]/,'')}"
-		position1 = m.index(searchPower, position2)+searchPower.length
-		position2 = m.index("\n", position1)
-		movePower = m[position1...position2]
-		moves << moveName if movePower != badMove and !moves.include?moveName
 	end
-	moves.delete_at(-1) if poplast
-	begin
-		site = open("http://pokemon.wikia.com/wiki/#{pokemon[1]}").read
-		search = "<b>Type(s):</b>"
-		a = site.index(search)
-		b = site.index('title="',a)
-		c = site.index('Pok',b)
-		type = site[b+7...c-1].downcase
-		writeFile.puts("type :#{type}")
-	rescue Exception
-		writeFile.puts("type nil")
+	moverows = movetable.children.css('table.sortable').children.css('tr')[0..-1] if movetable
+	if moverows
+		if moverows[0].children.css('th')[1].content.strip.gsub(/\W/, '') == 'Move'
+			col_num = 1
+		elsif moverows[0].children.css('th')[2].content.strip.gsub(/\W/, '') == 'Move'
+			col_num = 2
+		end
 	end
-	writeFile.puts("basehp #{pokemon[2]}")
-	writeFile.puts("baseattack #{pokemon[3]}")
-	writeFile.puts("basedefense #{pokemon[4]}")
-	writeFile.puts("basespattack #{pokemon[6]}")
-	writeFile.puts("basespdefense #{pokemon[6]}")
-	writeFile.puts("basespeed #{pokemon[5]}")
-	writeFile.puts("moves #{moves.join(", ")}")
+	pokemon[:moves] = moverows[1..-1].collect{|moverow| ":#{moverow.children.css('td')[col_num].content.strip.downcase.gsub(/\W/,'')}"} if moverows && col_num
+	pokemon[:moves] ||= []
+	pokemonList << pokemon
+	puts "Finished #{pokemon[:name]}"
+end
+
+writeFile = open('copyPastaPokemon.rb','w')
+pokemonList.each do |pokemon|
+	writeFile.puts("class #{pokemon[:name].gsub(/\W/,'').downcase.capitalize} < Pokemon")
+	writeFile.puts("name '#{pokemon[:name].to_s}'")
+	writeFile.puts("number #{pokemon[:number]}")
+	writeFile.puts("types #{pokemon[:types].collect{|t| ":#{t.downcase}"}.join(', ')}")
+	writeFile.puts("basehp #{pokemon[:hp]}")
+	writeFile.puts("baseattack #{pokemon[:attack]}")
+	writeFile.puts("basedefense #{pokemon[:defense]}")
+	writeFile.puts("basespattack #{pokemon[:spattack]}")
+	writeFile.puts("basespdefense #{pokemon[:spdefense]}")
+	writeFile.puts("basespeed #{pokemon[:speed]}")
+	writeFile.puts("moves #{pokemon[:moves].join(", ")}")
 	writeFile.puts("end")
-	puts "Finished #{pokemon[1]}"
 end

@@ -1,59 +1,23 @@
 class Pokemon
 	attr_accessor :name, :hp, :attack, :defense, :spattack, :spdefense, :speed, :accuracy
 	attr_reader :moves, :level
-	def initialize(level=1)
+	def initialize(name, level=1)
+		@name = name
 		@level = level
-		self.class.traits.each do |k,v|
-			instance_variable_set("@#{k}",v)
-		end
-		@@stats.each do |stat|
-			instance_variable_set("@#{stat}",eval("@base#{stat}+@level"))
-		end
-		@hp += @level
-		@accuracy = 100
-		@moves = self.class.moves
+		pokemon = $pokemon[name]
+		return "That pokemon does not exist" if pokemon.nil?
+		@hp = pokemon[:hp]+level
+		@attack = pokemon[:attack]+level
+		@defense = pokemon[:defense]+level
+		@spattack = pokemon[:spattack]+level
+		@spdefense = pokemon[:spdefense]+level
+		@speed = pokemon[:speed]+level
+		@accuracy = pokemon[:accuracy]+level
+		@moves = pokemon[:moves].collect{|m| Move.new(m)}
 	end
-
-	def self.metaclass
-		class << self
-			self
-		end
-	end
-
-	def self.moves(*arr)
-		arr.each do |movetext|
-			add_move($moves[movetext])
-		end
-		@moves
-	end
-
-	def self.traits(*arr)
-		return @traits if arr.empty?
-		attr_reader *arr
-		arr.each do |a|
-			metaclass.instance_eval do
-				define_method(a) do |val|
-					@traits ||= {}
-					@traits[a] = val
-				end
-			end
-		end
-	end
-
-	@@stats = :hp, :attack, :defense, :spattack, :spdefense, :speed
-	traits :basehp, :baseattack, :basedefense, :basespattack, :basespdefense, :basespeed, :type, :name 
 
 	def list_moves
 		@moves.length.times.collect {|i| "#{i}: #{@moves[i].name}" if @moves[i]}.compact.join("\n")
-	end
-
-	def self.add_move(move)
-		@moves ||= []
-		@moves << move if move and move.power!='--'
-	end
-
-	def remove_move(moveNumber)
-		@moves.delete_at(moveNumber)
 	end
 
 	def fight(moveNumber, opponentPokemon)

@@ -11,7 +11,7 @@ module Cinch
 				@battle = nil
 			end
 
-			match /^!poke/, :method => :execute
+			match /!poke/, :method => :execute
 
 			def execute(m)
 				text = m.params[1][6..-1]

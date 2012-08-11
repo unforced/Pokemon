@@ -1,41 +1,28 @@
 require 'open-uri'
-s = open("http://bulbapedia.bulbagarden.net/wiki/List_of_moves").read
-searchName = "(move)\">"
-searchType = "color:#FFF;\">"
-searchNumbers = "<td> "
-searchCategory = Regexp.compile("color:#\\w*;\">")
-position1 = 0
-position2 = 0
+require 'nokogiri'
+require_relative 'rom2num.rb'
+
+doc = Nokogiri::HTML(open("http://bulbapedia.bulbagarden.net/wiki/List_of_moves"))
+move_rows = doc.css('#mw-content-text').first.css('table.sortable.roundy table.sortable.roundy').first.children.css('tr')[1..-1]
 moves = []
-while s.index("165",position2)
-	move = []
-	[searchName,searchType].each do |search|
-		position1 = s.index(search,position2)+search.length
-		position2 = s.index("<",position1)
-		move << s[position1...position2].chomp
-	end
-	position1 = s.index(searchCategory,position2)+s.match(searchCategory,position2)[0].length
-	position2 = s.index("<",position1)
-	move << s[position1...position2].chomp
-	3.times do
-		position1 = s.index(searchNumbers,position2)+searchNumbers.length
-		position2 = s.index(/<|%/, position1)
-		move << s[position1...position2].chomp
-	end
+move_rows.each do |row|
+	move = {}
+	tds = row.children.css('td')
+	move[:name] = tds[1].content.strip
+	move[:type] = tds[2].content.strip.downcase
+	move[:category] = tds[3].content.strip.downcase
+	move[:pp] = tds[5].content.strip.to_i
+	move[:power] = tds[6].content.strip.to_i
+	move[:accuracy] = tds[7].content.strip.chomp('%').to_i
+	move[:generation] = rom2num(tds[8].content.strip)
 	moves << move
 end
-f = open("copyPastaMoves.rb",'w')
-f.puts("$moves = {")
+
+write_file = open('copyPastaMoves.rb', 'w')
+write_file.puts("$moves = {")
 moves.each do |move|
-	move = move.collect do |i|
-		if i==nil or i=='' or i=="&#8212;"
-			"'--'"
-		else
-			i
-		end
-	end
-	string = ":#{move[0].downcase.gsub(/\W/,'')} => Move.new(\"#{move[0]}\", :#{move[1].downcase}, :#{move[2].downcase}, #{move[3]}, #{move[4]}, #{move[5]}),"
-	string = '#' + string if move[4] == "'--'"
-	f.puts(string)
+	string = ":#{move[:name].downcase.gsub(/\W/,'')} => Move.new('#{move[:name]}', :#{move[:type]}, :#{move[:category]}, #{move[:pp]}, #{move[:power]}, #{move[:accuracy]}, #{move[:generation]}),"
+	string = '#' + string if move[:category] == 'status'
+	write_file.puts(string)
 end
-f.puts("}")
+write_file.puts("}")
