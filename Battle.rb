@@ -1,56 +1,50 @@
 class Battle
-	attr_accessor :turn, :notTurn, :pokemon1, :pokemon2, :finished
+	attr_accessor :turn, :notTurn, :trainer1, :trainer2, :finished, :level, :pokemon_count, :ready
 
-	def initialize(nick1, nick2, pokemon1=nil, pokemon2=nil)
-		@nick1 = nick1
-		@nick2 = nick2
-		@pokemon1 = pokemon1
-		@pokemon2 = pokemon2
-		@turn = @pokemon1
-		@notTurn = @pokemon2
+	def initialize(trainer1, trainer2, level=nil, pokemon_count=1)
+		@trainer1 = trainer1
+		@trainer2 = trainer2
+		@turn = @trainer1
+		@notTurn = @trainer2
+		@level = level
+		@pokemon_count = pokemon_count
 		@finished = false
+		@ready = false
 	end
 
-	def set_pokemon(nick, pokemon_name, pokemon_level)
-		begin
-			pokemon = eval("#{pokemon_name.gsub(/\W/,'').downcase.capitalize}.new(#{pokemon_level.to_i})")
-		rescue NameError
-			return "That is not a valid pokemon"
-		end
-		if nick==@nick1
-			@pokemon1 = pokemon
-			@turn = @pokemon1
-		elsif nick==@nick2
-			@pokemon2 = pokemon
-			@notTurn = @pokemon2
-		else
-			return "You are not part of this battle"
-		end
-		message = "You have selected a level #{pokemon.level} #{pokemon.name}"
-		message += "Both players have selected pokemon. #{@nick1} goes first." if @pokemon1 && @pokemon2
-		return message
+	def set_pokemon(trainer, pokemon_name, pokemon_level=@level)
+		pokemon = Pokemon.new(pokemon_name, pokemon_level)
+		trainer.add_pokemon(pokemon)
+		@ready = (@trainer1.pokemon_list == pokemon_count && @trainer2.pokemon_list == pokemon_count)
 	end
-
+	
+	def get_trainer(nick)
+		return @trainer1 if @trainer1.nick == nick
+		return @trainer2 if @trainer2.nick == nick
+	end
+	
 	def get_pokemon(nick)
-		return @pokemon1 if nick==@nick1
-		return @pokemon2 if nick==@nick2
+		return get_trainer(nick).active_pokemon
 	end
 
 	def get_moves(nick=nil)
 		return get_pokemon(nick).list_moves if nick
-		return @turn.list_moves
+		return @turn.active_pokemon.list_moves
 	end
 
 	def fight(moveNumber, nick=nil)
-		return "#{nick} && #{get_pokemon(nick).inspect} && #{@turn.inspect}" if nick && get_pokemon(nick) != @turn
-		message = @turn.fight(moveNumber, @notTurn)
-		if @notTurn.hp <= 0
-			@finished = true
-			return message + "\nThe pokemon has fainted"
-		else
-			@turn, @notTurn = @notTurn, @turn
-			return message
+		attacker = @turn.active_pokemon
+		defender = @notTurn.active_pokemon
+		message = attacker.fight(moveNumber, defender)
+		if defender.hp <= 0
+			message += "\nThe pokemon has fainted"
+			@notTurn.active_pokemon = @notTurn.alive_pokemon.first
+			message += "\n#{@notTurn.nick} has sent out #{@notTurn.active_pokemon.name}"
 		end
+		message += "\nThe pokemon has fainted" if defender.hp <= 0
+		@finished = true if @notTurn.alive_pokemon.count <= 0 || @turn.alive_pokemon.count <= 0
+		@turn, @notTurn = @notTurn, @turn
+		return message
 	end
 end
 

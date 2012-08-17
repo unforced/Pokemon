@@ -1,5 +1,8 @@
+require 'json'
+$moves = JSON.parse(open('copyPastaMoves.json').read, :symbolize_names => true)
 class Move
-	attr_reader :types, :type, :power, :name, :accuracy
+	attr_accessor :pp
+	attr_reader :type, :power, :name, :accuracy, :category
 
 	$types = {
 		:normal => [[],[:rock,:steel],[:ghost]],
@@ -21,19 +24,13 @@ class Move
 		:dark => [[:ghost,:psychic],[:fighting,:steel,:dark],[]]
 	}
 
-	def initialize(name, type, category, pp, power, accuracy)
-		@name = name
-		@type = type
-		@category = category
-		@pp = pp
-		@power = power
-		@accuracy = accuracy
-	end
-
-	def Move.show_moves
-		$moves.collect do |k,v|
-			v.name
-		end
+	def initialize(name)
+		move = $moves[name.downcase.gsub(/\W/, '').to_sym]
+		@name = move[:name]
+		@type = move[:type].to_sym
+		@category = move[:category].to_sym
+		@pp = move[:pp]
+		@power = move[:power]
+		@accuracy = move[:accuracy]
 	end
 end
-require_relative("copyPastaMoves.rb")
