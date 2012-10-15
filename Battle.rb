@@ -39,10 +39,12 @@ class Battle
 		if defender.hp <= 0
 			message += "\nThe pokemon has fainted"
 			@notTurn.active_pokemon = @notTurn.alive_pokemon.first
-			message += "\n#{@notTurn.nick} has sent out #{@notTurn.active_pokemon.name}"
+			message += "\n#{@notTurn.nick} has sent out #{@notTurn.active_pokemon.name}" if @notTurn.active_pokemon
 		end
-		message += "\nThe pokemon has fainted" if defender.hp <= 0
-		@finished = true if @notTurn.alive_pokemon.count <= 0 || @turn.alive_pokemon.count <= 0
+		if @notTurn.alive_pokemon.count <= 0
+			@finished = true
+			message += "\n#{@turn.nick} has won."
+		end
 		@turn, @notTurn = @notTurn, @turn
 		return message
 	end

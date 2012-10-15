@@ -17,8 +17,8 @@ puts "What level is it?"
 p2level = gets.chomp.to_i
 
 battle = Battle.new(Trainer.new(p1nick), Trainer.new(p2nick))
-battle.set_pokemon(p1nick, p1name, p1level)
-battle.set_pokemon(p2nick, p2name, p2level)
+battle.set_pokemon(battle.get_trainer(p1nick), p1name, p1level)
+battle.set_pokemon(battle.get_trainer(p2nick), p2name, p2level)
 battle.trainer1.active_pokemon = battle.trainer1.pokemon_list.first
 battle.trainer2.active_pokemon = battle.trainer2.pokemon_list.first
 until battle.finished

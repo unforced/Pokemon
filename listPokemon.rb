@@ -1,6 +1,8 @@
 require 'json'
 require 'open-uri'
 require 'nokogiri'
+require 'RMagick'
+include Magick
 doc = Nokogiri::HTML(open('http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats'))
 rows = doc.css('.sortable.roundy').first.children.css('tr')[1..-1]
 pokemonList = {}
@@ -10,6 +12,7 @@ rows.each do |row|
 	pokemon[:number] = tds[0].content.strip
 	next if pokemonList.any?{|k,v| v[:number] == pokemon[:number]}
 	link = tds[1].children[1].children.first.attributes['href'].value
+	image = tds[1].children[1].children.first.children.first.attributes['src'].value
 	pokemon[:name] = tds[2].content.strip.sub(/ \(.*$/, '')
 	begin
 		pokemon_doc = Nokogiri::HTML(open("http://bulbapedia.bulbagarden.net#{link}"))
@@ -24,6 +27,7 @@ rows.each do |row|
 	pokemon[:spattack] = tds[6].content.strip.to_i
 	pokemon[:spdefense] = tds[7].content.strip.to_i
 	pokemon[:speed] = tds[8].content.strip.to_i
+	pokemon[:ascii] = `ruby ascify.rb #{image}`
 	potential_movetables = pokemon_doc.css('#mw-content-text > table.roundy')
 	movetable = nil
 	potential_movetables.each do |potential_movetable|
@@ -44,6 +48,7 @@ rows.each do |row|
 	pokemon[:moves] ||= []
 	pokemonList[pokemon[:name].downcase.gsub(/\W/, '')] = pokemon
 	puts "Finished #{pokemon[:name]}"
+	puts pokemon[:ascii]
 end
 
 writeFile = open('copyPastaPokemon.json','w')

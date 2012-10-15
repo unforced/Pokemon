@@ -2,11 +2,12 @@ require 'json'
 $pokemon = JSON.parse(open("copyPastaPokemon.json").read, :symbolize_names => true)
 class Pokemon
 	attr_accessor :name, :hp, :attack, :defense, :spattack, :spdefense, :speed, :accuracy
-	attr_reader :moves, :level, :types, :maxhp
+	attr_reader :moves, :level, :types, :maxhp, :ascii
 	def initialize(name, level=1)
 		@level = level
 		pokemon = $pokemon[name.downcase.gsub(/\W/,'').to_sym]
 		raise(ArgumentError, "That pokemon does not exist") if pokemon.nil?
+		@ascii = pokemon[:ascii]
 		@name = pokemon[:name]
 		@hp = pokemon[:hp]+(level*2)
 		@maxhp = pokemon[:hp]+(level*2)
@@ -21,11 +22,12 @@ class Pokemon
 	end
 
 	def list_moves
-		@moves.length.times.collect {|i| "#{i}: #{@moves[i].name}" if @moves[i]}.compact.join("\n")
+		@moves.length.times.collect {|i| "#{i}: #{@moves[i].name}, #{@moves[i].type}, #{@moves[i].category}, pp:#{@moves[i].pp}, power:#{@moves[i].power}, accuracy:#{@moves[i].accuracy}" if @moves[i]}.compact.join("\n")
 	end
 
 	def fight(moveNumber, opponentPokemon)
 		move = moves[moveNumber]	
+		move.pp -= 1
 		c = rand(5)==0 ? 2 : 1
 		a = attack
 		d = opponentPokemon.defense
@@ -55,7 +57,7 @@ class Pokemon
 			return "You missed."
 		else
 			opponentPokemon.hp -= movePower
-			return "#{message}#{name} dealt #{movePower} damage to #{opponentPokemon.name}"
+			return "#{message}#{name} used #{move.name} and dealt #{movePower} damage to #{opponentPokemon.name}"
 		end
 	end
 end
