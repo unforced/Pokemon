@@ -1,9 +1,15 @@
 require 'RMagick'
 include Magick
 
-image = ImageList.new(ARGV[0])[0]
+require 'open-uri'
+
+urli = open(ARGV[0])
+
+image = ImageList.new
+image.from_blob(urli.read)
+
 ascii = ''
-image.each_pixel do |p,c,r|
+image[0].each_pixel do |p,c,r|
 	ascii << "\n" if c==0
 	color = (p.red*0.2126 + p.green*0.7152 + p.blue*0.0722)/256 + p.opacity/256
 	if color>250

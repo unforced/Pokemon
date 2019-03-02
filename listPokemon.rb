@@ -6,21 +6,22 @@ include Magick
 doc = Nokogiri::HTML(open('http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats'))
 rows = doc.css('.sortable.roundy').first.children.css('tr')[1..-1]
 pokemonList = {}
-rows.each do |row|
+rows[0..5].each do |row|
 	tds = row.children.css('td')
 	pokemon = {}
 	pokemon[:number] = tds[0].content.strip
 	next if pokemonList.any?{|k,v| v[:number] == pokemon[:number]}
 	link = tds[1].children[1].children.first.attributes['href'].value
-	image = tds[1].children[1].children.first.children.first.attributes['src'].value
+	image = "https:" + tds[1].children[1].children.first.children.first.attributes['src']
 	pokemon[:name] = tds[2].content.strip.sub(/ \(.*$/, '')
 	begin
 		pokemon_doc = Nokogiri::HTML(open("http://bulbapedia.bulbagarden.net#{link}"))
 	rescue OpenURI::HTTPError
+		puts "Error"
 		retry
 	end
-	type_table = pokemon_doc.css('#mw-content-text > table.roundy').first.xpath('./tr')[2].xpath('./td').first.css('table.roundy table.roundy').css('tr > td').first
-	pokemon[:types] = type_table.css('span span').collect{|t| t.content.downcase.gsub(/\W/, '')}
+	type_table = pokemon_doc.css('#mw-content-text > table.roundy').first.xpath('./tr')[1].xpath('./td').first.css('table.roundy').css('tr > td').first
+	pokemon[:types] = type_table.css('a > span').collect{|t| t.content.downcase.gsub(/\W/, '')}
 	pokemon[:hp] = tds[3].content.strip.to_i
 	pokemon[:attack] = tds[4].content.strip.to_i
 	pokemon[:defense] = tds[5].content.strip.to_i
